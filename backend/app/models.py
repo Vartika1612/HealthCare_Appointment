@@ -222,3 +222,18 @@ class NotificationLog(Base):
     last_error = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     sent_at = Column(DateTime, nullable=True)
+
+
+class CalendarCredential(Base):
+    __tablename__ = "calendar_credentials"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    token = Column(String, nullable=False)
+    refresh_token = Column(String, nullable=True)
+    token_uri = Column(String, nullable=False)
+    client_id = Column(String, nullable=False)
+    client_secret = Column(String, nullable=False)
+    scopes = Column(String, nullable=False)
+
+    user = relationship("User")

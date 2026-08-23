@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine, SessionLocal
 from . import models
 from .auth import hash_password
-from .routers import auth, admin, doctors, appointments
+from .routers import auth, admin, doctors, appointments, calendar
 from .services.scheduler import start_scheduler, shutdown_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +26,7 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(doctors.router)
 app.include_router(appointments.router)
+app.include_router(calendar.router)
 
 
 DEFAULT_ADMIN_EMAIL = "admin@clinic.test"

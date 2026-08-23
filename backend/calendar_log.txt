@@ -1,0 +1,2 @@
+2026-08-23T18:06:09.812202 | CREATE user=vartikavashishtha48@gmail.com event=mock-78a9a457b1f8 'Appointment with Dr. Anil Khumbre' 2026-08-25 11:30:00->2026-08-25 12:00:00
+2026-08-23T18:06:09.813161 | CREATE user=anil124@gmail.com event=mock-88577995656f 'Appointment with VARTIKA VASHISHTHA' 2026-08-25 11:30:00->2026-08-25 12:00:00

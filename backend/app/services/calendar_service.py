@@ -28,16 +28,26 @@ def _log(line: str):
 
 
 def _get_credentials_for_user(user_id: int):
-    """
-    Real implementation would load stored OAuth2 credentials for this user
-    (refreshing the access token if expired) from a credentials table, e.g.:
+    from google.oauth2.credentials import Credentials
+    from ..database import SessionLocal
+    from .. import models
 
-        creds_row = db.query(CalendarCredential).filter_by(user_id=user_id).first()
-        creds = google.oauth2.credentials.Credentials(**creds_row.to_dict())
-
-    Left unimplemented in mock mode.
-    """
-    raise NotImplementedError("Real Google Calendar mode requires stored per-user OAuth credentials")
+    db = SessionLocal()
+    try:
+        creds_row = db.query(models.CalendarCredential).filter_by(user_id=user_id).first()
+        if not creds_row:
+            raise Exception(f"No Calendar credentials found for user {user_id}")
+            
+        return Credentials(
+            token=creds_row.token,
+            refresh_token=creds_row.refresh_token,
+            token_uri=creds_row.token_uri,
+            client_id=creds_row.client_id,
+            client_secret=creds_row.client_secret,
+            scopes=creds_row.scopes.split(",") if creds_row.scopes else []
+        )
+    finally:
+        db.close()
 
 
 def create_event(user_id: int, user_email: str, summary: str, description: str,
