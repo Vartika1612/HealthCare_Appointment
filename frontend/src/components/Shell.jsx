@@ -18,7 +18,7 @@ export default function Shell({ children }) {
     try {
       const r = await api.get("/api/calendar/authorize");
       window.location.href = r.data.auth_url;
-    } catch (e) {
+    } catch {
       alert("Failed to start calendar authorization");
     }
   }
@@ -34,24 +34,29 @@ export default function Shell({ children }) {
           </div>
           <span className="brand-name">Meridian Clinic</span>
         </div>
+
         {auth && (
-          <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div className="topbar-right">
             {auth.role !== "admin" && (
               calendarConnected ? (
-                <span style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>📅 Calendar Connected</span>
+                <span style={{ fontSize: "0.82rem", color: "var(--teal)", fontWeight: 500 }}>
+                  📅 Calendar connected
+                </span>
               ) : (
-                <button className="btn btn-primary" style={{ padding: "6px 12px", fontSize: "0.85rem" }} onClick={connectCalendar}>
-                  Connect Google Calendar
+                <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.83rem" }} onClick={connectCalendar}>
+                  Connect Calendar
                 </button>
               )
             )}
-            <span>{auth.fullName} · {auth.role}</span>
-            <button className="btn btn-ghost" onClick={() => { logout(); navigate("/login"); }}>
+            <span style={{ color: "var(--ink)", fontWeight: 500 }}>{auth.fullName}</span>
+            <span className="tag tag-status" style={{ fontSize: "0.72rem", padding: "3px 10px" }}>{auth.role}</span>
+            <button className="btn btn-ghost" style={{ padding: "7px 14px" }} onClick={() => { logout(); navigate("/login"); }}>
               Sign out
             </button>
           </div>
         )}
       </div>
+
       {children}
     </div>
   );
@@ -62,7 +67,7 @@ export function PulseDivider() {
     <svg className="pulse-divider" viewBox="0 0 400 24" preserveAspectRatio="none">
       <path
         d="M0 12 H140 L155 2 L170 22 L185 6 L195 12 H400"
-        fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        fill="none" stroke="#0E5C53" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
       />
     </svg>
   );

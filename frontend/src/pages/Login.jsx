@@ -28,15 +28,26 @@ export default function Login() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
+        {/* Brand mark */}
+        <div className="auth-logo">
+          <div className="brand-mark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M2 12h5l2-7 4 14 2-7h7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <span className="brand-name">Meridian Clinic</span>
+        </div>
+
+        {/* Role selector */}
         <div className="segmented-control">
-          <button 
+          <button
             type="button"
             className={`segmented-tab ${activeTab === "patient" ? "active" : ""}`}
             onClick={() => setActiveTab("patient")}
           >
             Patient
           </button>
-          <button 
+          <button
             type="button"
             className={`segmented-tab ${activeTab === "staff" ? "active" : ""}`}
             onClick={() => setActiveTab("staff")}
@@ -44,27 +55,35 @@ export default function Login() {
             Doctor / Admin
           </button>
         </div>
+
         <h1>Welcome back</h1>
         <p className="sub">Sign in to manage your appointments.</p>
+
         {error && <div className="error-banner">{error}</div>}
+
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <label htmlFor="email">Email address</label>
+            <input id="email" type="email" required autoComplete="email"
+              value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input id="password" type="password" required autoComplete="current-password"
+              value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <button className="btn btn-primary" style={{ width: "100%" }} disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+          <button className="btn btn-primary" style={{ width: "100%", marginTop: 4 }} disabled={loading}>
+            {loading ? <><span className="spinner" /> Signing in…</> : "Sign in"}
           </button>
         </form>
+
         <div className="auth-switch">
           {activeTab === "patient" ? (
             <>New patient? <Link to="/register">Create an account</Link></>
           ) : (
-            "Doctor and admin accounts are created by your clinic administrator — use the credentials they gave you."
+            <span style={{ fontSize: "0.85rem", lineHeight: 1.55 }}>
+              Doctor and admin accounts are created by your clinic administrator — use the credentials they provided.
+            </span>
           )}
         </div>
       </div>

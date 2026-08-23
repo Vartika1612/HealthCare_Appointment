@@ -24,8 +24,9 @@ export default function AdminDashboard() {
   );
 }
 
+/* ─────────── Doctor List ─────────── */
 function DoctorList() {
-  const [doctors, setDoctors] = useState([]);
+  const [doctors, setDoctors] = useState(null); // null = loading
   const [expanded, setExpanded] = useState(null);
   const [leaves, setLeaves] = useState({});
   const [leaveDate, setLeaveDate] = useState("");
@@ -33,7 +34,8 @@ function DoctorList() {
   const [error, setError] = useState("");
 
   function load() {
-    api.get("/api/admin/doctors").then((r) => setDoctors(r.data)).catch(() => {});
+    setDoctors(null);
+    api.get("/api/admin/doctors").then((r) => setDoctors(r.data)).catch(() => setDoctors([]));
   }
   useEffect(load, []);
 
@@ -68,65 +70,117 @@ function DoctorList() {
     load();
   }
 
+  /* Loading skeleton */
+  if (doctors === null) {
+    return (
+      <div className="card">
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{ padding: "18px 0", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="skeleton" style={{ width: 150, height: 16 }} />
+              <div className="skeleton" style={{ width: 100, height: 13 }} />
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <div className="skeleton" style={{ width: 60, height: 32, borderRadius: 10 }} />
+              <div className="skeleton" style={{ width: 100, height: 32, borderRadius: 10 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (doctors.length === 0) {
+    return (
+      <div className="card">
+        <div className="empty-state">
+          <strong>No doctors yet</strong>
+          Add your first doctor profile from the "Add doctor" tab above.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="card">
-      {doctors.length === 0 && <div className="empty-state">No doctors yet — add one from the tab above.</div>}
-      {doctors.map((d) => (
+    <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+      {doctors.map((d, idx) => (
         <div key={d.id}>
-          <div className="list-row">
+          {/* Doctor row */}
+          <div className="list-row" style={{ padding: "18px 28px" }}>
             <div>
-              <div style={{ fontWeight: 600 }}>{d.full_name}</div>
-              <div style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
-                {d.specialization} · {d.slot_duration_minutes}-minute slots
-              </div>
+              <div className="appt-name">{d.full_name}</div>
+              <div className="appt-meta">{d.specialization} · {d.slot_duration_minutes}-min slots</div>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <span className="tag tag-status">{d.active ? "active" : "inactive"}</span>
-              <button className="btn btn-ghost" onClick={() => toggleActive(d)}>
+              <span className={`tag ${d.active ? "tag-low" : "tag-high"}`}>
+                {d.active ? "active" : "inactive"}
+              </span>
+              <button className="btn btn-ghost" style={{ padding: "7px 14px" }} onClick={() => toggleActive(d)}>
                 {d.active ? "Deactivate" : "Activate"}
               </button>
-              <button className="btn btn-ghost" onClick={() => expand(d)}>
-                {expanded === d.id ? "Hide" : "Manage leave"}
+              <button className="btn btn-ghost" style={{ padding: "7px 14px" }} onClick={() => expand(d)}>
+                {expanded === d.id ? "Close ↑" : "Manage leave"}
               </button>
             </div>
           </div>
+
+          {/* Leave management panel */}
           {expanded === d.id && (
-            <div style={{ paddingBottom: 20 }}>
+            <div className="leave-panel">
               {error && <div className="error-banner">{error}</div>}
-              <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 14 }}>
+
+              <p style={{ fontSize: "0.83rem", color: "var(--ink-soft)", margin: "0 0 14px", lineHeight: 1.55 }}>
+                Adding a leave day automatically cancels any booked appointments that day and emails affected patients.
+              </p>
+
+              {/* Add leave row */}
+              <div className="leave-add-row">
                 <div className="field" style={{ marginBottom: 0 }}>
                   <label>Leave date</label>
                   <input type="date" value={leaveDate} onChange={(e) => setLeaveDate(e.target.value)} />
                 </div>
                 <div className="field" style={{ marginBottom: 0, flex: 1 }}>
-                  <label>Reason (optional)</label>
-                  <input value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} placeholder="Conference, personal leave…" />
+                  <label>Reason <span style={{ fontWeight: 400 }}>(optional)</span></label>
+                  <input value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)}
+                    placeholder="Conference, personal leave…" />
                 </div>
-                <button className="btn btn-primary" disabled={!leaveDate} onClick={() => addLeave(d.id)}>
-                  Add leave
+                <button className="btn btn-primary" disabled={!leaveDate} onClick={() => addLeave(d.id)}
+                  style={{ alignSelf: "flex-end" }}>
+                  Add leave day
                 </button>
               </div>
-              <p style={{ fontSize: "0.8rem", color: "var(--ink-soft)", marginBottom: 10 }}>
-                Adding a leave day automatically cancels any booked appointments that day and emails the affected patients.
-              </p>
-              {(leaves[d.id] || []).length === 0 ? (
-                <p style={{ fontSize: "0.88rem", color: "var(--ink-soft)" }}>No leave days scheduled.</p>
-              ) : (
-                (leaves[d.id] || []).map((l) => (
-                  <div key={l.id} className="list-row">
-                    <span>{l.date} {l.reason && `— ${l.reason}`}</span>
-                    <button className="btn btn-danger" onClick={() => removeLeave(d.id, l.id)}>Remove</button>
+
+              {/* Leave list */}
+              <div style={{ marginTop: 16 }}>
+                {(leaves[d.id] || []).length === 0 ? (
+                  <div className="empty-hint" style={{ padding: "16px" }}>
+                    No leave days scheduled for {d.full_name.split(" ")[0]}.
                   </div>
-                ))
-              )}
+                ) : (
+                  (leaves[d.id] || []).map((l) => (
+                    <div key={l.id} className="list-row" style={{ padding: "12px 0" }}>
+                      <div>
+                        <span style={{ fontWeight: 600, fontSize: "0.93rem" }}>{l.date}</span>
+                        {l.reason && <span style={{ color: "var(--ink-soft)", marginLeft: 8, fontSize: "0.88rem" }}>— {l.reason}</span>}
+                      </div>
+                      <button className="btn btn-danger" style={{ padding: "6px 12px" }} onClick={() => removeLeave(d.id, l.id)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
+
+          {idx < doctors.length - 1 && <div style={{ borderBottom: "1px solid var(--line)", margin: "0 28px" }} />}
         </div>
       ))}
     </div>
   );
 }
 
+/* ─────────── Add Doctor Form ─────────── */
 function NewDoctorForm({ onCreated }) {
   const [form, setForm] = useState({
     full_name: "", email: "", password: "", specialization: "", slot_duration_minutes: 30, bio: "",
@@ -164,6 +218,8 @@ function NewDoctorForm({ onCreated }) {
     <div className="card">
       {error && <div className="error-banner">{error}</div>}
       <form onSubmit={handleSubmit}>
+
+        {/* Basic info */}
         <div className="grid-2">
           <div className="field">
             <label>Full name</label>
@@ -187,29 +243,34 @@ function NewDoctorForm({ onCreated }) {
               onChange={(e) => update("slot_duration_minutes", Number(e.target.value))} />
           </div>
           <div className="field">
-            <label>Bio (optional)</label>
+            <label>Bio <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(optional)</span></label>
             <input value={form.bio} onChange={(e) => update("bio", e.target.value)} />
           </div>
         </div>
 
-        <label style={{ display: "block", fontSize: "0.82rem", color: "var(--ink-soft)", fontWeight: 500, margin: "10px 0 8px" }}>
+        {/* Working hours */}
+        <label style={{ display: "block", fontSize: "0.83rem", color: "var(--ink-soft)", fontWeight: 600, margin: "8px 0 12px", letterSpacing: "0.01em" }}>
           Working hours
         </label>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+        <div className="hours-grid">
           {hours.map((h, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <label style={{ width: 90, display: "flex", alignItems: "center", gap: 6, fontSize: "0.88rem" }}>
+            <div key={i} className={`hours-row ${!h.enabled ? "disabled" : ""}`}>
+              <label>
                 <input type="checkbox" checked={h.enabled} onChange={(e) => updateHour(i, "enabled", e.target.checked)} />
                 {WEEKDAYS[i]}
               </label>
-              <input type="time" disabled={!h.enabled} value={h.start_time} onChange={(e) => updateHour(i, "start_time", e.target.value)} style={{ width: 120 }} />
-              <span style={{ color: "var(--ink-soft)" }}>to</span>
-              <input type="time" disabled={!h.enabled} value={h.end_time} onChange={(e) => updateHour(i, "end_time", e.target.value)} style={{ width: 120 }} />
+              <input type="time" disabled={!h.enabled} value={h.start_time}
+                onChange={(e) => updateHour(i, "start_time", e.target.value)} />
+              <span className="hours-sep">–</span>
+              <input type="time" disabled={!h.enabled} value={h.end_time}
+                onChange={(e) => updateHour(i, "end_time", e.target.value)} />
             </div>
           ))}
         </div>
 
-        <button className="btn btn-primary" disabled={busy}>{busy ? "Creating…" : "Create doctor profile"}</button>
+        <button className="btn btn-primary" disabled={busy}>
+          {busy ? <><span className="spinner" /> Creating…</> : "Create doctor profile"}
+        </button>
       </form>
     </div>
   );
