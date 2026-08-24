@@ -28,15 +28,37 @@ def get_calendar_status(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if settings.use_mock_calendar:
+        return {"connected": True, "mock": True}
     creds = db.query(models.CalendarCredential).filter(models.CalendarCredential.user_id == current_user.id).first()
-    return {"connected": creds is not None}
+    return {"connected": creds is not None, "mock": False}
 
 @router.get("/authorize")
 def authorize_calendar(
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    if not settings.google_client_id:
-        raise HTTPException(status_code=500, detail="Google Calendar is not configured.")
+    if settings.use_mock_calendar:
+        creds_row = db.query(models.CalendarCredential).filter(models.CalendarCredential.user_id == current_user.id).first()
+        if not creds_row:
+            creds_row = models.CalendarCredential(
+                user_id=current_user.id,
+                token="mock-token",
+                refresh_token="mock-refresh-token",
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id="mock-client-id",
+                client_secret="mock-client-secret",
+                scopes=",".join(SCOPES)
+            )
+            db.add(creds_row)
+            db.commit()
+        return {"auth_url": "http://localhost:5173/?calendar=connected_mock"}
+
+    if not settings.google_client_id or not settings.google_client_secret:
+        raise HTTPException(
+            status_code=400,
+            detail="Google Calendar OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in backend/.env or set USE_MOCK_CALENDAR=true."
+        )
         
     flow = Flow.from_client_config(
         get_client_config(),
@@ -53,8 +75,8 @@ def authorize_calendar(
 
 @router.get("/oauth2callback")
 def oauth2callback(state: str, code: str, db: Session = Depends(get_db)):
-    if not settings.google_client_id:
-        raise HTTPException(status_code=500, detail="Google Calendar is not configured.")
+    if not settings.google_client_id or not settings.google_client_secret:
+        raise HTTPException(status_code=400, detail="Google Calendar OAuth is not configured.")
 
     try:
         user_id = int(state)
@@ -84,5 +106,5 @@ def oauth2callback(state: str, code: str, db: Session = Depends(get_db)):
     
     db.commit()
 
-    # In a real app we might redirect to a config URL. 
     return RedirectResponse(url="http://localhost:5173/")
+

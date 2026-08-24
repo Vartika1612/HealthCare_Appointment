@@ -17,9 +17,12 @@ export default function Shell({ children }) {
   async function connectCalendar() {
     try {
       const r = await api.get("/api/calendar/authorize");
-      window.location.href = r.data.auth_url;
-    } catch {
-      alert("Failed to start calendar authorization");
+      if (r.data.auth_url) {
+        window.location.href = r.data.auth_url;
+      }
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      alert(detail || "Failed to start calendar authorization");
     }
   }
 
