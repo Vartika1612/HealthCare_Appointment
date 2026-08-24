@@ -31,8 +31,8 @@ export default function Login() {
         {/* Brand mark */}
         <div className="auth-logo">
           <div className="brand-mark">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M2 12h5l2-7 4 14 2-7h7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 4v16m-8-8h16" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           <span className="brand-name">Meridian Clinic</span>

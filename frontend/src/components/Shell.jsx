@@ -31,8 +31,8 @@ export default function Shell({ children }) {
       <div className="topbar">
         <div className="brand">
           <div className="brand-mark">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M2 12h5l2-7 4 14 2-7h7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 4v16m-8-8h16" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           <span className="brand-name">Meridian Clinic</span>
@@ -42,18 +42,31 @@ export default function Shell({ children }) {
           <div className="topbar-right">
             {auth.role !== "admin" && (
               calendarConnected ? (
-                <span style={{ fontSize: "0.82rem", color: "var(--teal)", fontWeight: 500 }}>
-                  📅 Calendar connected
+                <span style={{ fontSize: "0.83rem", color: "#166534", fontWeight: 600, background: "#DCFCE7", padding: "4px 12px", borderRadius: 999 }}>
+                  ✓ Calendar Connected
                 </span>
               ) : (
-                <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.83rem" }} onClick={connectCalendar}>
+                <button className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: "0.83rem" }} onClick={connectCalendar}>
                   Connect Calendar
                 </button>
               )
             )}
-            <span style={{ color: "var(--ink)", fontWeight: 500 }}>{auth.fullName}</span>
-            <span className="tag tag-status" style={{ fontSize: "0.72rem", padding: "3px 10px" }}>{auth.role}</span>
-            <button className="btn btn-ghost" style={{ padding: "7px 14px" }} onClick={() => { logout(); navigate("/login"); }}>
+            
+            <div className="user-profile-badge">
+              <div className="avatar-circle">
+                {auth.fullName ? auth.fullName.charAt(0).toUpperCase() : "U"}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", paddingRight: 4 }}>
+                <span style={{ color: "var(--ink-heading)", fontWeight: 700, fontSize: "0.88rem", lineHeight: 1.2 }}>
+                  {auth.fullName}
+                </span>
+                <span style={{ fontSize: "0.75rem", color: "var(--ink-muted)", textTransform: "capitalize" }}>
+                  {auth.role}
+                </span>
+              </div>
+            </div>
+
+            <button className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: "0.85rem" }} onClick={() => { logout(); navigate("/login"); }}>
               Sign out
             </button>
           </div>

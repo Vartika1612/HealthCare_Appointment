@@ -8,17 +8,58 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState("doctors");
   return (
     <Shell>
-      <div className="page">
-        <div className="page-header">
-          <h1>Clinic administration</h1>
-          <p>Manage doctor profiles, working hours, and leave.</p>
-        </div>
-        <PulseDivider />
-        <div className="nav-tabs">
-          <button className={`nav-tab ${tab === "doctors" ? "active" : ""}`} onClick={() => setTab("doctors")}>Doctors</button>
-          <button className={`nav-tab ${tab === "new" ? "active" : ""}`} onClick={() => setTab("new")}>Add doctor</button>
-        </div>
-        {tab === "doctors" ? <DoctorList /> : <NewDoctorForm onCreated={() => setTab("doctors")} />}
+      <div className="admin-layout">
+        {/* Blue Left Navigation Sidebar matching screenshot */}
+        <aside className="admin-sidebar">
+          <div>
+            <div style={{ color: "white", fontSize: "1.1rem", fontWeight: 800, marginBottom: 24, paddingLeft: 8, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyCenter: "center" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 4v16m-8-8h16" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+              </div>
+              Meridian Clinic
+            </div>
+
+            <nav className="sidebar-nav">
+              <button 
+                className={`sidebar-link ${tab === "doctors" ? "active" : ""}`}
+                onClick={() => setTab("doctors")}
+              >
+                <span>👨‍⚕️</span> Doctors
+              </button>
+              <button 
+                className={`sidebar-link ${tab === "new" ? "active" : ""}`}
+                onClick={() => setTab("new")}
+              >
+                <span>➕</span> Add Doctor
+              </button>
+            </nav>
+          </div>
+
+          <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", paddingLeft: 8 }}>
+            Admin Portal v2.4
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="admin-main">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+            <div>
+              <h1 style={{ fontSize: "1.75rem", color: "var(--ink-heading)" }}>Clinic Administration</h1>
+              <p style={{ color: "var(--ink-muted)", fontSize: "0.95rem", marginTop: 4 }}>
+                Manage doctor profiles, working hours, and leave days.
+              </p>
+            </div>
+            {tab === "doctors" && (
+              <button className="btn btn-primary" onClick={() => setTab("new")}>
+                + Add Doctor
+              </button>
+            )}
+          </div>
+
+          {tab === "doctors" ? <DoctorList onAddClick={() => setTab("new")} /> : <NewDoctorForm onCreated={() => setTab("doctors")} />}
+        </main>
       </div>
     </Shell>
   );
@@ -75,16 +116,7 @@ function DoctorList() {
     return (
       <div className="card">
         {[1, 2, 3].map(i => (
-          <div key={i} style={{ padding: "18px 0", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div className="skeleton" style={{ width: 150, height: 16 }} />
-              <div className="skeleton" style={{ width: 100, height: 13 }} />
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <div className="skeleton" style={{ width: 60, height: 32, borderRadius: 10 }} />
-              <div className="skeleton" style={{ width: 100, height: 32, borderRadius: 10 }} />
-            </div>
-          </div>
+          <div key={i} style={{ height: 60, background: "#F1F5F9", borderRadius: 8, marginBottom: 12 }} />
         ))}
       </div>
     );
@@ -92,90 +124,113 @@ function DoctorList() {
 
   if (doctors.length === 0) {
     return (
-      <div className="card">
-        <div className="empty-state">
-          <strong>No doctors yet</strong>
-          Add your first doctor profile from the "Add doctor" tab above.
-        </div>
+      <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
+        <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 6 }}>No doctors added yet</strong>
+        <p style={{ color: "var(--ink-muted)", marginBottom: 16 }}>Create doctor profiles to configure availability and accept appointments.</p>
       </div>
     );
   }
 
   return (
-    <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-      {doctors.map((d, idx) => (
-        <div key={d.id}>
-          {/* Doctor row */}
-          <div className="list-row" style={{ padding: "18px 28px" }}>
-            <div>
-              <div className="appt-name">{d.full_name}</div>
-              <div className="appt-meta">{d.specialization} · {d.slot_duration_minutes}-min slots</div>
-            </div>
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <span className={`tag ${d.active ? "tag-low" : "tag-high"}`}>
-                {d.active ? "active" : "inactive"}
-              </span>
-              <button className="btn btn-ghost" style={{ padding: "7px 14px" }} onClick={() => toggleActive(d)}>
-                {d.active ? "Deactivate" : "Activate"}
-              </button>
-              <button className="btn btn-ghost" style={{ padding: "7px 14px" }} onClick={() => expand(d)}>
-                {expanded === d.id ? "Close ↑" : "Manage leave"}
-              </button>
-            </div>
-          </div>
-
-          {/* Leave management panel */}
-          {expanded === d.id && (
-            <div className="leave-panel">
-              {error && <div className="error-banner">{error}</div>}
-
-              <p style={{ fontSize: "0.83rem", color: "var(--ink-soft)", margin: "0 0 14px", lineHeight: 1.55 }}>
-                Adding a leave day automatically cancels any booked appointments that day and emails affected patients.
-              </p>
-
-              {/* Add leave row */}
-              <div className="leave-add-row">
-                <div className="field" style={{ marginBottom: 0 }}>
-                  <label>Leave date</label>
-                  <input type="date" value={leaveDate} onChange={(e) => setLeaveDate(e.target.value)} />
-                </div>
-                <div className="field" style={{ marginBottom: 0, flex: 1 }}>
-                  <label>Reason <span style={{ fontWeight: 400 }}>(optional)</span></label>
-                  <input value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)}
-                    placeholder="Conference, personal leave…" />
-                </div>
-                <button className="btn btn-primary" disabled={!leaveDate} onClick={() => addLeave(d.id)}
-                  style={{ alignSelf: "flex-end" }}>
-                  Add leave day
-                </button>
-              </div>
-
-              {/* Leave list */}
-              <div style={{ marginTop: 16 }}>
-                {(leaves[d.id] || []).length === 0 ? (
-                  <div className="empty-hint" style={{ padding: "16px" }}>
-                    No leave days scheduled for {d.full_name.split(" ")[0]}.
-                  </div>
-                ) : (
-                  (leaves[d.id] || []).map((l) => (
-                    <div key={l.id} className="list-row" style={{ padding: "12px 0" }}>
-                      <div>
-                        <span style={{ fontWeight: 600, fontSize: "0.93rem" }}>{l.date}</span>
-                        {l.reason && <span style={{ color: "var(--ink-soft)", marginLeft: 8, fontSize: "0.88rem" }}>— {l.reason}</span>}
-                      </div>
-                      <button className="btn btn-danger" style={{ padding: "6px 12px" }} onClick={() => removeLeave(d.id, l.id)}>
-                        Remove
-                      </button>
+    <div className="table-container">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Doctor</th>
+            <th>Specialization</th>
+            <th>Consultation</th>
+            <th>Status</th>
+            <th style={{ textAlign: "right" }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {doctors.map((d) => (
+            <>
+              <tr key={d.id}>
+                <td>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div className="avatar-circle" style={{ width: 40, height: 40 }}>
+                      {d.full_name.replace("Dr. ", "").charAt(0)}
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+                    <div>
+                      <div style={{ fontWeight: 700, color: "var(--ink-heading)" }}>{d.full_name}</div>
+                      <div style={{ fontSize: "0.82rem", color: "var(--ink-muted)" }}>{d.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span style={{ fontWeight: 600, color: "var(--ink-heading)" }}>{d.specialization}</span>
+                </td>
+                <td>
+                  <div style={{ fontSize: "0.88rem", color: "var(--ink-heading)" }}>{d.slot_duration_minutes}-min slots</div>
+                  <div style={{ fontSize: "0.8rem", color: "var(--ink-muted)" }}>₹800 fee</div>
+                </td>
+                <td>
+                  <span className={`tag ${d.active ? "tag-active" : "tag-high"}`}>
+                    {d.active ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td style={{ textAlign: "right" }}>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <button className="btn btn-ghost" style={{ padding: "6px 12px", fontSize: "0.82rem" }} onClick={() => toggleActive(d)}>
+                      {d.active ? "Deactivate" : "Activate"}
+                    </button>
+                    <button className="btn btn-ghost" style={{ padding: "6px 12px", fontSize: "0.82rem" }} onClick={() => expand(d)}>
+                      {expanded === d.id ? "Close" : "Manage Leave"}
+                    </button>
+                  </div>
+                </td>
+              </tr>
 
-          {idx < doctors.length - 1 && <div style={{ borderBottom: "1px solid var(--line)", margin: "0 28px" }} />}
-        </div>
-      ))}
+              {/* Leave management drawer */}
+              {expanded === d.id && (
+                <tr key={`${d.id}-leave`}>
+                  <td colSpan={5} style={{ background: "#F8FAFC", padding: "20px 24px" }}>
+                    <div style={{ maxWidth: 800 }}>
+                      <h4 style={{ fontSize: "0.95rem", marginBottom: 12 }}>Leave Schedule — {d.full_name}</h4>
+                      {error && <div className="error-banner">{error}</div>}
+
+                      <div style={{ display: "flex", gap: 12, alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap" }}>
+                        <div className="field" style={{ marginBottom: 0 }}>
+                          <label style={{ fontSize: "0.8rem" }}>Leave Date</label>
+                          <input type="date" value={leaveDate} onChange={(e) => setLeaveDate(e.target.value)} />
+                        </div>
+                        <div className="field" style={{ marginBottom: 0, flex: 1 }}>
+                          <label style={{ fontSize: "0.8rem" }}>Reason (Optional)</label>
+                          <input value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} placeholder="Conference, personal leave…" />
+                        </div>
+                        <button className="btn btn-primary" style={{ padding: "10px 16px" }} disabled={!leaveDate} onClick={() => addLeave(d.id)}>
+                          Add Leave Day
+                        </button>
+                      </div>
+
+                      <div style={{ background: "white", border: "1px solid var(--card-border)", borderRadius: 8, padding: 12 }}>
+                        {(leaves[d.id] || []).length === 0 ? (
+                          <div style={{ fontSize: "0.88rem", color: "var(--ink-muted)", textAlign: "center", padding: "8px" }}>
+                            No upcoming leave days scheduled.
+                          </div>
+                        ) : (
+                          (leaves[d.id] || []).map((l) => (
+                            <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
+                              <div>
+                                <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{l.date}</span>
+                                {l.reason && <span style={{ color: "var(--ink-muted)", marginLeft: 8, fontSize: "0.85rem" }}>({l.reason})</span>}
+                              </div>
+                              <button className="btn btn-danger" style={{ padding: "4px 10px", fontSize: "0.8rem" }} onClick={() => removeLeave(d.id, l.id)}>
+                                Delete
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -216,48 +271,47 @@ function NewDoctorForm({ onCreated }) {
 
   return (
     <div className="card">
+      <h3 style={{ fontSize: "1.2rem", marginBottom: 20 }}>Add New Doctor Profile</h3>
       {error && <div className="error-banner">{error}</div>}
       <form onSubmit={handleSubmit}>
 
-        {/* Basic info */}
         <div className="grid-2">
           <div className="field">
-            <label>Full name</label>
-            <input required value={form.full_name} onChange={(e) => update("full_name", e.target.value)} />
+            <label>Full Name</label>
+            <input required placeholder="Dr. Jane Doe" value={form.full_name} onChange={(e) => update("full_name", e.target.value)} />
           </div>
           <div className="field">
             <label>Specialization</label>
-            <input required value={form.specialization} onChange={(e) => update("specialization", e.target.value)} />
+            <input required placeholder="Cardiologist, Dermatologist…" value={form.specialization} onChange={(e) => update("specialization", e.target.value)} />
           </div>
           <div className="field">
-            <label>Email</label>
-            <input type="email" required value={form.email} onChange={(e) => update("email", e.target.value)} />
+            <label>Email Address</label>
+            <input type="email" required placeholder="doctor@meridian.com" value={form.email} onChange={(e) => update("email", e.target.value)} />
           </div>
           <div className="field">
-            <label>Temporary password</label>
+            <label>Temporary Password</label>
             <input type="password" required minLength={8} value={form.password} onChange={(e) => update("password", e.target.value)} />
           </div>
           <div className="field">
-            <label>Slot duration (minutes)</label>
+            <label>Slot Duration (minutes)</label>
             <input type="number" min={10} step={5} value={form.slot_duration_minutes}
               onChange={(e) => update("slot_duration_minutes", Number(e.target.value))} />
           </div>
           <div className="field">
-            <label>Bio <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(optional)</span></label>
-            <input value={form.bio} onChange={(e) => update("bio", e.target.value)} />
+            <label>Bio (Optional)</label>
+            <input placeholder="Brief doctor profile statement" value={form.bio} onChange={(e) => update("bio", e.target.value)} />
           </div>
         </div>
 
-        {/* Working hours */}
-        <label style={{ display: "block", fontSize: "0.83rem", color: "var(--ink-soft)", fontWeight: 600, margin: "8px 0 12px", letterSpacing: "0.01em" }}>
-          Working hours
+        <label style={{ display: "block", fontSize: "0.88rem", color: "var(--ink-heading)", fontWeight: 700, margin: "12px 0 12px" }}>
+          Weekly Working Hours
         </label>
         <div className="hours-grid">
           {hours.map((h, i) => (
             <div key={i} className={`hours-row ${!h.enabled ? "disabled" : ""}`}>
-              <label>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
                 <input type="checkbox" checked={h.enabled} onChange={(e) => updateHour(i, "enabled", e.target.checked)} />
-                {WEEKDAYS[i]}
+                <span style={{ fontWeight: 600 }}>{WEEKDAYS[i]}</span>
               </label>
               <input type="time" disabled={!h.enabled} value={h.start_time}
                 onChange={(e) => updateHour(i, "start_time", e.target.value)} />
@@ -268,8 +322,8 @@ function NewDoctorForm({ onCreated }) {
           ))}
         </div>
 
-        <button className="btn btn-primary" disabled={busy}>
-          {busy ? <><span className="spinner" /> Creating…</> : "Create doctor profile"}
+        <button className="btn btn-primary" disabled={busy} style={{ width: "100%", padding: "12px", marginTop: 8 }}>
+          {busy ? <><span className="spinner" /> Creating Profile…</> : "Create Doctor Profile"}
         </button>
       </form>
     </div>
