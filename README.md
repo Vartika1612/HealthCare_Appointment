@@ -101,15 +101,19 @@ your Mailgun SMTP credentials.
 3. Copy the Client ID/Secret into `backend/.env` as `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`,
    and set `GOOGLE_REDIRECT_URI` to match what you registered.
 4. Set `USE_MOCK_CALENDAR=false`.
-5. Each user (patient/doctor) needs to complete the OAuth consent flow once so the app can create
-   events on their calendar. `app/services/calendar_service.py` documents the exact insertion
-   point (`_get_credentials_for_user`) for storing and refreshing per-user tokens — wire this up
-   to a `calendar_credentials` table and an `/api/calendar/authorize` + `/oauth2callback` route
-   pair using `google-auth-oauthlib`'s `Flow` class before flipping the flag.
+5. Google Calendar OAuth 2.0 is implemented through `/api/calendar/authorize` and `/api/calendar/oauth2callback`. User calendar credentials are stored in the `calendar_credentials` table. Set `USE_MOCK_CALENDAR=false` and configure the Google OAuth credentials to enable live calendar integration.
 
 ---
 
-## 4. Database schema
+## 4. Live Demo
+
+- **Frontend:** https://healthcare-appointment.vercel.app
+- **Backend API:** https://healthcare-appointment-backend.onrender.com
+- **API Documentation:** https://healthcare-appointment-backend.onrender.com/docs
+
+---
+
+## 5. Database schema
 
 | Table | Purpose |
 |---|---|
