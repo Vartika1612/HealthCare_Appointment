@@ -108,8 +108,8 @@ your Mailgun SMTP credentials.
 ## 4. Live Demo
 
 - **Frontend:** https://healthcare-appointment.vercel.app
-- **Backend API:** https://healthcare-appointment-backend.onrender.com
-- **API Documentation:** https://healthcare-appointment-backend.onrender.com/docs
+- **Backend API:** https://healthcare-appointment-njxb.onrender.com
+- **API Documentation:** https://healthcare-appointment-njxb.onrender.com/docs
 
 ---
 
